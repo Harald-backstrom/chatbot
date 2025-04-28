@@ -1,50 +1,50 @@
 const express = require("express");
-const mysql = require("mysql");
-const bodyParser = require("body-parser");
-
+const mysql = require("mysql2");
+const path = require("path");
 const app = express();
 const port = 3000;
 
-// Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public")); // För att servera HTML-filer från mappen "public"
+// Middleware för att läsa formulärdata
+app.use(express.urlencoded({ extended: true }));
 
-// MySQL-anslutning
+// Koppling till databasen
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "", // om du inte har något lösenord
+  password: "",
   database: "chatbotdb",
-  port: 3306,
 });
 
+// Start
 db.connect((err) => {
   if (err) {
-    console.error("Kunde inte ansluta till databasen:", err);
+    console.error("Databasanslutning misslyckades:", err);
     return;
   }
-  console.log("Ansluten till MySQL-databasen!");
+  console.log("Ansluten till databasen.");
 });
 
-// Ta emot formulärdata
-app.post("/chat", (req, res) => {
-  const userInput = req.body.userInput;
+// Visa HTML-sidan
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
-  // Hämta svaret från databasen
+// Hantera formulär
+app.post("/chat", (req, res) => {
+  const userInput = req.body.message;
+
   db.query(
     "SELECT output FROM chatbot WHERE input = ?",
     [userInput],
     (err, results) => {
       if (err) {
-        console.error(err);
-        res.send("Något gick fel.");
-        return;
+        return res.send("Databasfel.");
       }
 
       if (results.length > 0) {
-        res.send(results[0].output);
+        res.send(`<p>${results[0].output}</p><a href="/">Tillbaka</a>`);
       } else {
-        res.send("Jag förstår tyvärr inte. Försök fråga något annat.");
+        res.send(`<p>Jag förstår inte.</p><a href="/">Försök igen</a>`);
       }
     }
   );
