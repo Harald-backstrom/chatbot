@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chatbot</title>
+  </head>
+  <body>
+    <h1>Chatbot</h1>
+    <form id="chatForm">
+      <input type="text" id="userInput" name="userInput" required />
+      <button type="submit">Skicka</button>
+    </form>
+
+    <div id="response"></div>
+
+    <script>
+      const form = document.getElementById("chatForm");
+      const responseDiv = document.getElementById("response");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const userInput = document.getElementById("userInput").value;
+
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `userInput=${encodeURIComponent(userInput)}`,
+        });
+
+        const data = await response.text();
+        responseDiv.innerHTML = `<p><strong>Chatbot:</strong> ${data}</p>`;
+        form.reset();
+      });
+    </script>
+  </body>
+</html>
